@@ -1,0 +1,70 @@
+version: "3"
+services:
+  datadog-agent:
+    image: gcr.io/datadoghq/agent:latest
+    ports:
+      - 8125:8125/udp
+    environment:
+      - DD_API_KEY=$DD_API_KEY
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_LOGS_CONFIG_AUTO_MULTI_LINE_DETECTION=true
+      - DD_CONTAINER_EXCLUDE=name:^.*datadog-agent.*$$
+      - DD_CONTAINER_LABELS_AS_TAGS={"com.datadoghq.tags.team":"team","com.datadoghq.tags.role":"role"}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
+  frontend:
+    build: frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - datadog-agent
+    environment:
+      - DD_ENV=practice
+      - DD_SERVICE=frontend
+      - DD_VERSION=0.1.0
+    labels:
+      com.datadoghq.tags.env: "practice"
+      com.datadoghq.tags.service: "frontend"
+      com.datadoghq.tags.version: "0.1.0"
+      com.datadoghq.tags.team: "dev"
+      com.datadoghq.tags.role: "frontend"
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "frontend"}]'
+  backend:
+    build: backend
+    ports:
+      - "8081:8081"
+    depends_on:
+      - datadog-agent
+    environment:
+      - RUST_LOG=backend=INFO
+      - DD_ENV=practice
+      - DD_SERVICE=backend
+      - DD_VERSION=0.1.0
+    labels:
+      com.datadoghq.tags.env: "practice"
+      com.datadoghq.tags.service: "backend"
+      com.datadoghq.tags.version: "0.1.0"
+      com.datadoghq.tags.team: "dev"
+      com.datadoghq.tags.role: "backend"
+      com.datadoghq.ad.logs: '[{"source": "rust", "service": "backend"}]'
+  db:
+    build: db
+    ports:
+      - "8082:8082"
+    depends_on:
+      - datadog-agent
+    environment:
+      - DD_ENV=practice
+      - DD_SERVICE=db
+      - DD_VERSION=0.1.0
+    labels:
+      com.datadoghq.tags.env: "practice"
+      com.datadoghq.tags.service: "db"
+      com.datadoghq.tags.version: "0.1.0"
+      com.datadoghq.tags.team: "dev"
+      com.datadoghq.tags.role: "db"
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "db"}]'
