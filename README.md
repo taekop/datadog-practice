@@ -32,6 +32,21 @@ $ docker compose up --build
 └───────────────────────┘         └─────────────────────────────┘         └───────────────────────┘        └─────────────────────────────┘         └───────────────────────┘
 ```
 
+## Log Pipeline
+
+Due to the absence of a default Rust log pipeline in Datadog, it becomes necessary to configure a custom pipeline specifically for Rust. Below, you'll find an example to help you set it up.
+
+| Pipeline          | `source:rust`                                                                                                                                                                             |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Grok Parser       | `rust_format %{date("yyyy-MM-dd'T'HH:mm:ss.SSSZZ"):timestamp} %{word:levelname} \[%{data::keyvalue}\] %{data:code.namespace}:%{data:code.filename}:%{data:code.lineno} - %{data:message}` |
+| Date Remapper     | Define `timestamp` as the official date of the log                                                                                                                                        |
+| Status Remapper   | Define  `levelname`  as the official status of the log                                                                                                                                    |
+| Message Remapper  | Define  `message`  as the official message of the log                                                                                                                                     |
+| Trace Id Remapper | Define  `dd.trace_id`  as the official trace ID of the log                                                                                                                                |
+| Remapper          | Map attribute  `dd.env`  to tag  `env`                                                                                                                                                    |
+| Remapper          | Map attribute  `dd.version`  to tag  `version`                                                                                                                                            |
+| Service Remapper  | Define  `dd.service`  as the official service of the log                                                                                                                                  |
+
 ## Future Improvements
 - Trace Naming in Backend
 - Metrics Integration
